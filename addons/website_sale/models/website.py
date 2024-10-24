@@ -399,7 +399,7 @@ class Website(models.Model):
             # Force recomputation of the website pricelist after reset
             self.invalidate_recordset(['pricelist_id'])
             pricelist_id = self.pricelist_id.id
-            request.session['website_sale_current_pl'] = pricelist_id
+            # request.session['website_sale_current_pl'] = pricelist_id
 
             # change the partner, and trigger the computes (fpos)
             sale_order_sudo.write({
