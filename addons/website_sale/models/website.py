@@ -6,6 +6,9 @@ from odoo.osv import expression
 
 from odoo.addons.http_routing.models.ir_http import url_for
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Website(models.Model):
     _inherit = 'website'
@@ -311,13 +314,14 @@ class Website(models.Model):
         :returns: record for the current sales order (might be empty)
         :rtype: `sale.order` recordset
         """
+        logger.info(f'======into sale_get_order==={update_pricelist}====')
         self.ensure_one()
 
         self = self.with_company(self.company_id)
         SaleOrder = self.env['sale.order'].sudo()
 
         sale_order_id = request.session.get('sale_order_id')
-
+        logger.info(f'======sale_order_id:{sale_order_id}=======')
         if sale_order_id:
             sale_order_sudo = SaleOrder.browse(sale_order_id).exists()
         elif self.env.user and not self.env.user._is_public():
@@ -355,6 +359,7 @@ class Website(models.Model):
             if request.session.get('sale_order_id'):
                 request.session.pop('sale_order_id')
                 request.session.pop('website_sale_cart_quantity', None)
+            logger.info(f'======return self.env[sale.order]=======')
             return self.env['sale.order']
 
         # Only set when neeeded
@@ -371,6 +376,7 @@ class Website(models.Model):
             request.session['website_sale_cart_quantity'] = sale_order_sudo.cart_quantity
             # The order was created with SUPERUSER_ID, revert back to request user.
             sale_order_sudo = sale_order_sudo.with_user(self.env.user).sudo()
+            logger.info(f'======return sale_order_sudo=======')
             return sale_order_sudo
 
         # Existing Cart:
@@ -410,6 +416,7 @@ class Website(models.Model):
 
         # update the pricelist
         if update_pricelist:
+            logger.info(f'======into update_pricelist=======')
             # Only compute pricelist if needed
             request.session.pop('website_sale_current_pl', None)
             pricelist_id = self.pricelist_id.id

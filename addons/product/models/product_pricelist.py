@@ -353,13 +353,16 @@ class Pricelist(models.Model):
                 order_sudo = request.website.sale_get_order()
                 partner_shipping = order_sudo.partner_shipping_id
                 shipping_country =  partner_shipping.country_id  # 获取所有合作伙伴的送货国家
+                logger.info(f'======into 1. 优先根据shipping country: {shipping_country}=======')
                 pl = Pricelist.search(
                     pl_domain + [('country_group_ids.country_ids', '=', shipping_country.id if shipping_country else False)], limit=1)
 
+                logger.info(f'======pl {pl.id}=======')
                 # 2. 其次尝试根据国家查找价目表
                 if not pl:
                     pl = Pricelist.search(
                         pl_domain + [('country_group_ids.country_ids', '=', country.id if country else False)], limit=1)
+                    logger.info(f'======into2. 其次尝试根据国家查找价目表 pl {pl.id}=======')
 
                 # 3. 如果没有找到价目表，则通过IP获取国家
                 if not pl:
@@ -371,7 +374,7 @@ class Pricelist(models.Model):
                             # 根据IP找到的国家再查找价目表
                             pl = Pricelist.search(
                                 pl_domain + [ ('country_group_ids.country_ids', '=', country_obj.id if country_obj else False)], limit=1)
-
+                    logger.info(f'======into3. 如果没有找到价目表，则通过IP获取国家{country_code} pl {pl.id}=======')
 
                 # # 测试线上能否获取正确的IP地址
                 # country_code = request and request.geoip.country_code
