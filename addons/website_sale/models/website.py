@@ -216,7 +216,7 @@ class Website(models.Model):
         """
         self.ensure_one()
 
-        country_code = self._get_geoip_country_code()
+        country_code = False
         website = self.with_company(self.company_id)
 
         partner_sudo = website.env.user.partner_id
