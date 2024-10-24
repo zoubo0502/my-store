@@ -272,15 +272,19 @@ class Website(models.Model):
                 request.session.pop('website_sale_current_pl')
                 pricelist = ProductPricelist
 
+            logger.info(f'======_get_current_pricelist 1 =={pricelist.id}====')
+
         if not pricelist:
             partner_sudo = self.env.user.partner_id
 
             # If the user has a saved cart, it take the pricelist of this last unconfirmed cart
             pricelist = partner_sudo.last_website_so_id.pricelist_id
+            logger.info(f'======_get_current_pricelist 2.1 =={pricelist.id}====')
             if not pricelist:
                 # The pricelist of the user set on its partner form.
                 # If the user is not signed in, it's the public user pricelist
                 pricelist = partner_sudo.property_product_pricelist
+                logger.info(f'======_get_current_pricelist 2.2 =={pricelist.id}====')
 
             # The list of available pricelists for this user.
             # If the user is signed in, and has a pricelist set different than the public user pricelist
@@ -293,6 +297,7 @@ class Website(models.Model):
                 # This can only happen when the pricelist is the public user pricelist and this pricelist is not in the available pricelist for this localization
                 # If the user is signed in, and has a special pricelist (different than the public user pricelist),
                 # then this special pricelist is amongs these available pricelists, and therefore it won't fall in this case.
+                logger.info(f'======_get_current_pricelist 2.3 =={pricelist.id}====')
                 pricelist = available_pricelists[0]
 
         logger.info(f'======_get_current_pricelist=={pricelist.id}====')
@@ -399,6 +404,7 @@ class Website(models.Model):
             # Force recomputation of the website pricelist after reset
             self.invalidate_recordset(['pricelist_id'])
             pricelist_id = self.pricelist_id.id
+            logger.info(f'===partner checking===pricelist_id:{pricelist_id}=======')
             # request.session['website_sale_current_pl'] = pricelist_id
 
             # change the partner, and trigger the computes (fpos)
