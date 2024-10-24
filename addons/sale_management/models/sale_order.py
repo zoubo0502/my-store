@@ -7,6 +7,8 @@ from odoo import SUPERUSER_ID, api, fields, models, _
 from odoo.exceptions import ValidationError
 from odoo.tools import is_html_empty
 
+import logging
+logger = logging.getLogger(__name__)
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
@@ -148,6 +150,7 @@ class SaleOrder(models.Model):
         return res
 
     def _recompute_prices(self):
+        logger.info(f'======into sales management  _recompute_prices=======')
         super()._recompute_prices()
         # Special case: we want to overwrite the existing discount on _recompute_prices call
         # i.e. to make sure the discount is correctly reset

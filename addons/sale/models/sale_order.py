@@ -11,6 +11,8 @@ from odoo.tools import float_is_zero, format_amount, format_date, html_keep_url,
 from odoo.tools.sql import create_index
 
 from odoo.addons.payment import utils as payment_utils
+import logging
+logger = logging.getLogger(__name__)
 
 INVOICE_STATUS = [
     ('upselling', 'Upselling Opportunity'),
@@ -1127,7 +1129,9 @@ class SaleOrder(models.Model):
         self.message_post(body=message)
 
     def _recompute_prices(self):
+        logger.info(f'======into sales _recompute_prices=======')
         lines_to_recompute = self._get_update_prices_lines()
+        logger.info(f'======lines_to_recompute.order_id.amount:{lines_to_recompute.order_id.amount}=======')
         lines_to_recompute.invalidate_recordset(['pricelist_item_id'])
         lines_to_recompute._compute_price_unit()
         # Special case: we want to overwrite the existing discount on _recompute_prices call

@@ -10,7 +10,8 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Command
 from odoo.osv import expression
 from odoo.tools.float_utils import float_is_zero, float_round
-
+import logging
+logger = logging.getLogger(__name__)
 
 def _generate_random_reward_code():
     return str(random.getrandbits(32))
@@ -520,6 +521,7 @@ class SaleOrder(models.Model):
     def _recompute_prices(self):
         """Recompute coupons/promotions after pricelist prices reset."""
         super()._recompute_prices()
+        logger.info(f'======loyalty _recompute_prices=======')
         if any(line.is_reward_line for line in self.order_line):
             self._update_programs_and_rewards()
 

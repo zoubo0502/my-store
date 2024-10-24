@@ -422,6 +422,7 @@ class Website(models.Model):
             pricelist_id = self.pricelist_id.id
             request.session['website_sale_current_pl'] = pricelist_id
             sale_order_sudo.write({'pricelist_id': pricelist_id})
+            logger.info(f'======final pricelist_id:{pricelist_id}=======')
             sale_order_sudo._recompute_prices()
 
         return sale_order_sudo
