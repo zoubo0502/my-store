@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+import os
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+import geoip2.database
+from odoo.http import request
 
+import logging
+logger = logging.getLogger(__name__)
 
 class Pricelist(models.Model):
     _name = "product.pricelist"
@@ -344,11 +349,71 @@ class Pricelist(models.Model):
             remaining_partners = self.env['res.partner'].browse(remaining_partner_ids)
             partners_by_country = remaining_partners.grouped('country_id')
             for country, partners in partners_by_country.items():
-                pl = Pricelist.search(pl_domain + [('country_group_ids.country_ids', '=', country.id if country else False)], limit=1)
+                # 1. 优先根据shipping country
+                order_sudo = request.website.sale_get_order()
+                partner_shipping = order_sudo.partner_shipping_id
+                shipping_country =  partner_shipping.country_id  # 获取所有合作伙伴的送货国家
+                pl = Pricelist.search(
+                    pl_domain + [('country_group_ids.country_ids', '=', shipping_country.id if shipping_country else False)], limit=1)
+
+                # 2. 其次尝试根据国家查找价目表
+                if not pl:
+                    pl = Pricelist.search(
+                        pl_domain + [('country_group_ids.country_ids', '=', country.id if country else False)], limit=1)
+
+                # 3. 如果没有找到价目表，则通过IP获取国家
+                if not pl:
+                    # 自带的，但是本地ip测试不了
+                    country_code = request and request.geoip.country_code
+                    if country_code:
+                        country_obj = self.env['res.country'].search([('code', '=', country_code)], limit=1)
+                        if country_obj:
+                            # 根据IP找到的国家再查找价目表
+                            pl = Pricelist.search(
+                                pl_domain + [ ('country_group_ids.country_ids', '=', country_obj.id if country_obj else False)], limit=1)
+
+
+                # # 测试线上能否获取正确的IP地址
+                # country_code = request and request.geoip.country_code
+                # logger.info(f"================country_code: {country_code}================")
+                # ip_address = request and request.httprequest.remote_addr
+                # logger.info(f"================ip_address: {ip_address}================")
+
+                    # # 本地测试用
+                    # if not pl:
+                    #     ip_address = "110.242.68.66"  # 中国ip
+                    #     # ip_address = "8.8.8.8"  # 美国ip
+                    #     if ip_address:
+                    #         country_code = self._get_country_from_ip(ip_address)
+                    #         if country_code:
+                    #             country_obj = self.env['res.country'].search([('code', '=', country_code)], limit=1)
+                    #             if country_obj:
+                    #                 # 根据IP找到的国家再查找价目表
+                    #                 pl = Pricelist.search(
+                    #                     pl_domain + [('country_group_ids.country_ids', '=', country_obj.id if country_obj else False)], limit=1)
+
+                # 3. 如果依旧没有找到价目表，使用回退价目表
                 pl = pl or pl_fallback
                 result.update(dict.fromkeys(partners._ids, pl))
 
         return result
+
+
+    def _get_country_from_ip(self, ip_address):
+        """
+        使用 GeoIP2 数据库获取 IP 地址对应的国家。
+        """
+        # 读取 GeoIP 数据库的路径，可以从 Odoo 配置文件中获取路径
+        db_path = "D:\EasyBuildPick\odoo\geo\GeoLite2-Country.mmdb"
+        if db_path and os.path.exists(db_path):
+            reader = geoip2.database.Reader(db_path)
+            try:
+                response = reader.country(ip_address)
+                return response.country.iso_code  # 返回国家代码
+            except Exception as e:
+                return None
+        else:
+            return None
 
     def _get_partner_pricelist_multi_search_domain_hook(self, company_id):
         return [

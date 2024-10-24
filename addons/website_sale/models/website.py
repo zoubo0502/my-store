@@ -407,12 +407,12 @@ class Website(models.Model):
 
             if sale_order_sudo.pricelist_id != previous_pricelist:
                 update_pricelist = True
-        elif update_pricelist:
-            # Only compute pricelist if needed
-            pricelist_id = self.pricelist_id.id
 
         # update the pricelist
         if update_pricelist:
+            # Only compute pricelist if needed
+            request.session.pop('website_sale_current_pl', None)
+            pricelist_id = self.pricelist_id.id
             request.session['website_sale_current_pl'] = pricelist_id
             sale_order_sudo.write({'pricelist_id': pricelist_id})
             sale_order_sudo._recompute_prices()

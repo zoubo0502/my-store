@@ -785,7 +785,7 @@ class WebsiteSale(payment_portal.PaymentPortal):
         access_token: Abandoned cart SO access token
         revive: Revival method when abandoned cart. Can be 'merge' or 'squash'
         """
-        order = request.website.sale_get_order()
+        order = request.website.sale_get_order(update_pricelist=True)
         if order and order.state != 'draft':
             request.session['sale_order_id'] = None
             order = request.website.sale_get_order()
@@ -1239,7 +1239,7 @@ class WebsiteSale(payment_portal.PaymentPortal):
     @http.route(['/shop/address'], type='http', methods=['GET', 'POST'], auth="public", website=True, sitemap=False)
     def address(self, **kw):
         Partner = request.env['res.partner'].with_context(show_address=1).sudo()
-        order = request.website.sale_get_order()
+        order = request.website.sale_get_order(update_pricelist=True)
 
         redirection = self.checkout_redirection(order)
         if redirection:
@@ -1567,7 +1567,7 @@ class WebsiteSale(payment_portal.PaymentPortal):
 
     @http.route(['/shop/checkout'], type='http', auth="public", website=True, sitemap=False)
     def checkout(self, **post):
-        order_sudo = request.website.sale_get_order()
+        order_sudo = request.website.sale_get_order(update_pricelist=True)
         request.session['sale_last_order_id'] = order_sudo.id
         redirection = self.checkout_redirection(order_sudo)
         if redirection:
@@ -1594,7 +1594,7 @@ class WebsiteSale(payment_portal.PaymentPortal):
     def update_cart_address(self, partner_id, mode='billing', **kw):
         partner_id = int(partner_id)
 
-        order_sudo = request.website.sale_get_order()
+        order_sudo = request.website.sale_get_order(update_pricelist=True)
         if not order_sudo:
             return
 
@@ -1635,7 +1635,7 @@ class WebsiteSale(payment_portal.PaymentPortal):
 
     @http.route(['/shop/confirm_order'], type='http', auth="public", website=True, sitemap=False)
     def confirm_order(self, **post):
-        order = request.website.sale_get_order()
+        order = request.website.sale_get_order(update_pricelist=True)
 
         redirection = self.checkout_redirection(order) or self.checkout_check_address(order)
         if redirection:
