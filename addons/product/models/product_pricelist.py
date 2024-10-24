@@ -404,7 +404,7 @@ class Pricelist(models.Model):
         使用 GeoIP2 数据库获取 IP 地址对应的国家。
         """
         # 读取 GeoIP 数据库的路径，可以从 Odoo 配置文件中获取路径
-        db_path = "D:\EasyBuildPick\odoo\geo\GeoLite2-Country.mmdb"
+        db_path = "D:\\EasyBuildPick\\odoo\\geo\\GeoLite2-Country.mmdb"
         if db_path and os.path.exists(db_path):
             reader = geoip2.database.Reader(db_path)
             try:

@@ -212,7 +212,8 @@ class Website(models.Model):
         """
         self.ensure_one()
 
-        country_code = self._get_geoip_country_code()
+        # 不限定国家IP所在的国家只能使用对应国家的价格
+        country_code = False
         website = self.with_company(self.company_id)
 
         partner_sudo = website.env.user.partner_id
