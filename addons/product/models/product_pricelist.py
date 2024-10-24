@@ -398,7 +398,7 @@ class Pricelist(models.Model):
                 # 3. 如果依旧没有找到价目表，使用回退价目表
                 pl = pl or pl_fallback
                 result.update(dict.fromkeys(partners._ids, pl))
-
+        logger.info(f'pricelist result {result}=======')
         return result
 
 

@@ -126,6 +126,7 @@ class Website(models.Model):
     def _compute_pricelist_id(self):
         for website in self:
             website.pricelist_id = website._get_current_pricelist()
+            logger.info(f"=======_compute_pricelist_id=={website.pricelist_id}")
 
     def _compute_fiscal_position_id(self):
         for website in self:
@@ -260,7 +261,6 @@ class Website(models.Model):
         """
         self = self.with_company(self.company_id)
         ProductPricelist = self.env['product.pricelist']
-
         pricelist = ProductPricelist
         if request and request.session.get('website_sale_current_pl'):
             # `website_sale_current_pl` is set only if the user specifically chose it:
@@ -295,6 +295,7 @@ class Website(models.Model):
                 # then this special pricelist is amongs these available pricelists, and therefore it won't fall in this case.
                 pricelist = available_pricelists[0]
 
+        logger.info(f'======_get_current_pricelist=={pricelist.id}====')
         return pricelist
 
     def sale_product_domain(self):
