@@ -349,15 +349,17 @@ class Pricelist(models.Model):
             remaining_partners = self.env['res.partner'].browse(remaining_partner_ids)
             partners_by_country = remaining_partners.grouped('country_id')
             for country, partners in partners_by_country.items():
+                pl = None
                 # 1. 优先根据shipping country
-                order_sudo = request.website.sale_get_order()
-                partner_shipping = order_sudo.partner_shipping_id
-                shipping_country =  partner_shipping.country_id  # 获取所有合作伙伴的送货国家
-                logger.info(f'======into 1. 优先根据shipping country: {shipping_country}=======')
-                pl = Pricelist.search(
-                    pl_domain + [('country_group_ids.country_ids', '=', shipping_country.id if shipping_country else False)], limit=1)
+                if hasattr(request, 'website'):
+                    order_sudo = request.website.sale_get_order()
+                    partner_shipping = order_sudo.partner_shipping_id
+                    shipping_country =  partner_shipping.country_id  # 获取所有合作伙伴的送货国家
+                    logger.info(f'======into 1. 优先根据shipping country: {shipping_country}=======')
+                    pl = Pricelist.search(
+                        pl_domain + [('country_group_ids.country_ids', '=', shipping_country.id if shipping_country else False)], limit=1)
 
-                logger.info(f'======pl {pl.id}=======')
+                    logger.info(f'======pl {pl.id}=======')
                 # 2. 其次尝试根据国家查找价目表
                 if not pl:
                     pl = Pricelist.search(
